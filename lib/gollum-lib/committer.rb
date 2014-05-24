@@ -118,8 +118,6 @@ module Gollum
         end
       end
 
-      fullpath = fullpath.force_encoding('ascii-8bit') if fullpath.respond_to?(:force_encoding)
-
       begin
         data = @wiki.normalize(data)
       rescue ArgumentError => err
@@ -150,8 +148,6 @@ module Gollum
             else
               ::File.join(dir, @wiki.page_file_name(name, format))
             end
-
-        path = path.force_encoding('ascii-8bit') if path.respond_to?(:force_encoding)
 
         Dir.chdir(::File.join(@wiki.repo.path, '..')) do
           if file_path_scheduled_for_deletion?(index.tree, path)
@@ -236,7 +232,6 @@ module Gollum
 
     # Proxies methods t
     def method_missing(name, *args)
-      args.map! { |item| item.respond_to?(:force_encoding) ? item.force_encoding('ascii-8bit') : item }
       index.send(name, *args)
     end
   end

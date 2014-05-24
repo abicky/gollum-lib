@@ -15,7 +15,7 @@ module Gollum
 
     def initialize(sha, path, size = nil, mode = nil)
       @sha  = sha
-      @path = path
+      @path = GritExt.encode!(path.dup)
       @size = size
       @mode = mode
       @dir  = @name = @blob = nil
