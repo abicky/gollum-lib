@@ -58,94 +58,49 @@ module Gollum
 
     def render_files
       html         = ''
-      count        = @pages.size
-      folder_start = -1
-
-      # Process all pages until folders start
-      count.times do |index|
-        page = @pages[index]
-        path = page.path
-
-        unless path.include? '/'
-          # Page processed (not contained in a folder)
-          html += new_page page
-        else
-          # Folders start at the next index
-          folder_start = index
-          break # Pages finished, move on to folders
-        end
-      end
-
-      # If there are no folders, then we're done.
-      return enclose_tree(html) if folder_start <= -1
-
-      # Handle special case of only one folder.
-      if (count - folder_start == 1)
-        page = @pages[folder_start]
-        html += <<-HTML
-        <li>
-          <label>#{::File.dirname(page.path)}</label> <input type="checkbox" #{@checked} />
-          <ol>
-          #{new_page page}
-         </ol>
-        </li>
-        HTML
-
-        return enclose_tree html
-      end
-
-      sorted_folders = []
-      (folder_start).upto count - 1 do |index|
-        sorted_folders += [[@pages[index].path, index]]
-      end
-
-      # http://stackoverflow.com/questions/3482814/sorting-list-of-string-paths-in-vb-net
-      sorted_folders.sort! do |first, second|
-        a           = first[0]
-        b           = second[0]
-
-        # use :: operator because gollum defines its own conflicting File class
-        dir_compare = ::File.dirname(a) <=> ::File.dirname(b)
-
-        # Sort based on directory name unless they're equal (0) in
-        # which case sort based on file name.
-        if dir_compare == 0
-          ::File.basename(a) <=> ::File.basename(b)
-        else
-          dir_compare
-        end
-      end
 
       # keep track of folder depth, 0 = at root.
-      cwd_array = []
-      changed   = false
+      prev_folders = ['.']
 
       # process rest of folders
-      (0...sorted_folders.size).each do |index|
-        page   = @pages[sorted_folders[index][1]]
+      @pages.each do |page|
         path   = page.path
         folder = ::File.dirname path
 
-        tmp_array = folder.split '/'
+        current_folders = folder.split '/'
+        max_depth = [prev_folders.size, current_folders.size].max - 1
+        (0..max_depth).each do |depth|
+          next if prev_folders[depth] == current_folders[depth]
 
-        (0...tmp_array.size).each do |index|
-          if cwd_array[index].nil? || changed
-            html += new_sub_folder tmp_array[index]
-            next
+          if prev_folders[depth].nil?
+            (max_depth - depth + 1).times do |index|
+              html += new_sub_folder current_folders[depth + index]
+            end
+            break
           end
 
-          if cwd_array[index] != tmp_array[index]
-            changed = true
-            (cwd_array.size - index).times do
+          if current_folders[depth].nil?
+            (max_depth - depth + 1).times do
               html += end_folder
             end
-            html += new_sub_folder tmp_array[index]
+            break
           end
+
+          if prev_folders[depth] != '.'
+            (prev_folders.size - depth).times do
+              html += end_folder
+            end
+          end
+          if current_folders[depth] != '.'
+            (current_folders.size - depth).times do |index|
+              html += new_sub_folder current_folders[depth + index]
+            end
+          end
+          break
         end
 
-        html      += new_page page
-        cwd_array = tmp_array
-        changed   = false
+        html         += new_page page
+        prev_folders  = current_folders
       end
 
       # return the completed html

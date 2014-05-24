@@ -48,6 +48,10 @@ class FakePages
   def [] index
     @array[index]
   end
+
+  def each(&block)
+    @array.each(&block)
+  end
 end
 
 def view pages
