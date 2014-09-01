@@ -43,14 +43,15 @@ module Gollum
 
     def url_for_page page
       url = ''
+      dir = ::File.join(::File.dirname(page.path).split('/').map { |d| CGI.escape(d) })
       if @show_all
         # Remove ext for valid pages.
         filename = page.filename
         filename = Page::valid_page_name?(filename) ? filename.chomp(::File.extname(filename)) : filename
 
-        url = ::File.join(::File.dirname(page.path), filename)
+        url = ::File.join(dir, CGI.escape(filename))
       else
-        url = ::File.join(::File.dirname(page.path), page.filename_stripped)
+        url = ::File.join(dir, CGI.escape(page.filename_stripped))
       end
       url = url[2..-1] if url[0, 2] == './'
       url
