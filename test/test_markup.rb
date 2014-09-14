@@ -222,7 +222,7 @@ context "Markup" do
         DATA
         ), commit_details)
     output   = @wiki.page(page).formatted_data
-    expected = %Q{<pre><code>      <pre class=\"highlight\"><span class=\"err\">rot13='tr '\\''A-Za-z'\\'' '\\''N-ZA-Mn-za-m'\\'</span></pre>\n</code></pre>}
+    expected = %Q{<pre><code>      <pre class=\"highlight\">rot13='tr '\\''A-Za-z'\\'' '\\''N-ZA-Mn-za-m'\\'</pre>\n</code></pre>}
     assert_html_equal expected, output
   end
 
@@ -235,7 +235,7 @@ context "Markup" do
 ~~~
       ), commit_details)
     output   = @wiki.page(page).formatted_data
-    expected = %Q{<pre class=\"highlight\"><span class=\"err\">'hi'</span></pre>}
+    expected = %Q{<pre class=\"highlight\">'hi'</pre>}
 
     assert_html_equal expected, output
   end
@@ -644,7 +644,13 @@ context "Markup" do
 
   test "code blocks with ascii characters" do
     content = "a\n\n```\n├─foo\n```\n\nb"
-    output  = %(<p>a</p><preclass=\"highlight\"><spanclass=\"err\">├─foo</span></pre><p>b</p>)
+    output  = %(<p>a</p>\n\n<pre class=\"highlight\">├─foo\n</pre>\n\n<p>b</p>)
+    compare(content, output)
+  end
+
+  test "code blocks with unknown language" do
+    content = "a\n\n```foo\n├─foo\n```\n\nb"
+    output  = %(<p>a</p>\n\n<pre class=\"highlight\"><span class=\"err\">├─foo\n</span></pre>\n\n<p>b</p>)
     compare(content, output)
   end
 

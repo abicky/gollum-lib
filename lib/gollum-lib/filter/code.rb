@@ -89,7 +89,8 @@ class Gollum::Filter::Code < Gollum::Filter
             lexer     = Rouge::Lexers::PlainText.new
             formatter = Rouge::Formatters::HTML.new(:wrap => false)
             hl_code   = formatter.format(lexer.lex(code))
-            hl_code   = "<pre class='highlight'><span class='err'>#{CGI.escapeHTML(hl_code)}</span></pre>"
+            hl_code   = "<span class='err'>#{hl_code}</span>" if lang
+            hl_code   = "<pre class='highlight'>#{hl_code}</pre>"
           else
             hl_code = Rouge.highlight(code, lang, 'html')
           end
